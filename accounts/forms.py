@@ -1,14 +1,9 @@
 from django import forms
-from django.core import validators
-from django.core.exceptions import ValidationError
 from . import models
-
+import datetime
 
 
 class UserProfileForm(forms.ModelForm):
-
-    # Additional 'confirm e-mail' field against which to 
-    # verify first e-mail entry
 
     confirm_email = forms.EmailField(
         label="Confirm e-mail",
@@ -18,7 +13,8 @@ class UserProfileForm(forms.ModelForm):
     # Declare 'bio' field in the ModelForm to allow for minimum length
     # validation.
 
-    bio = forms.CharField(widget=forms.Textarea, min_length=10, label="Biography")
+    bio = forms.CharField(widget=forms.Textarea,
+                          min_length=10, label="Biography")
 
     class Meta:
         model = models.UserProfile
@@ -32,7 +28,11 @@ class UserProfileForm(forms.ModelForm):
             'avatar'
         ]
 
-
+    def clean_dob(self):
+        dob = self.cleaned_data['dob']
+        if dob > datetime.date.today():
+            dob = dob.replace(year=(dob.year - 100))
+        return dob
 
     def clean(self):
         """Verify that both e-mails received as input

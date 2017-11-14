@@ -7,6 +7,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, Pass
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.exceptions import ValidationError
 from . import models
 from . import forms
 
@@ -73,7 +74,8 @@ def show_profile(request):
 def edit_profile(request):
     form = forms.UserProfileForm(instance=request.user.userprofile)
     if request.method == 'POST':
-        form = forms.UserProfileForm(data=request.POST, instance=request.user.userprofile, files=request.FILES)
+        form = forms.UserProfileForm(
+            data=request.POST, instance=request.user.userprofile, files=request.FILES)
         if form.is_valid():
             form.save()
             return redirect('/accounts/profile')
@@ -90,26 +92,23 @@ def change_pw(request):
         form = PasswordChangeForm(request.user, request.POST)
         # Validate form
         if form.is_valid():
-            # Save form
-            user = form.save()
-            # Ensure user's session won't be invalidated/user won't be
-            # required to log in again
-            update_session_auth_hash(request, user)
-            messages.success(request, 'Your password was successfully updated!')
-            return redirect('/accounts/profile')
+            pw = form.cleaned_data['new_password1']
+            if request.user.check_password(pw):
+                messages.error(
+                    request,
+                    "Password can't be the same as your current password!"
+                )
+                return HttpResponseRedirect(reverse('accounts:change_pw'))
+            else:
+                user = form.save()
+                # Ensure user's session won't be invalidated/user won't be
+                # required to log in again
+                update_session_auth_hash(request, user)
+                messages.success(
+                    request, 'Your password was successfully updated!')
+                return redirect('/accounts/profile')
         else:
             messages.error(request, 'Please fix the error')
     else:
         form = PasswordChangeForm(request.user)
     return render(request, 'accounts/change_password.html', {'form': form})
-
-
-
-
-
-
-
-
-
-
-
