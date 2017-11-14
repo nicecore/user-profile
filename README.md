@@ -19,8 +19,8 @@ You’ll also create a 'change password page' that updates the user’s password
 
 ## How to run the app
 
-First you'll need to set up a virtual environment with Django and Pillow installed.
-After that, make and run your migrations.
+First you'll need to set up a virtual environment with the packages from requirements.txt.
+After that, make and run your migrations to create the sqlite3 database.
 You should then be able to run `python manage.py runserver` to start the server and use the app.
 
 ## Project Instructions
